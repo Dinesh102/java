@@ -260,7 +260,7 @@ You can declare beans using the @Bean annotation in a configuration class.
 
 Spring can automatically scan a package for beans if component scanning is enabled.
 
-1)Here’s the simple way to do that with Java configuration:
+1)HereÂ’s the simple way to do that with Java configuration:
 
 	@Configuration
 	@ComponentScan("com.baeldung")
@@ -280,7 +280,7 @@ simply ensuring that the class will be found during classpath scanning and
 
 	@Component
 	public class Foo {
-	    ...
+	Â Â Â Â ...
 	}
 
 
@@ -348,3 +348,18 @@ server.port=9092
 
 
 ------------------------------------------------------------------------------------------
+
+
+
+ui
+|
+|
+->controller
+	|
+	|->service
+		|
+		|
+		->repositroy
+			|
+			|
+			->model----->db
