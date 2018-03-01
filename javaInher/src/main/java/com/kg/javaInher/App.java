@@ -1,13 +1,17 @@
 package com.kg.javaInher;
 
-/**
- * Hello world!
- *
- */
-public class App 
-{
-    public static void main( String[] args )
-    {
-        System.out.println( "Hello World!" );
+public class App {
+     
+    class Inner{
+        void msg(){ 
+            System.out.println( "Hello World!" );
+        }
     }
+        void display(){
+            Inner in=new Inner();
+            in.msg();
+            }
+    
+        
+        
 }
