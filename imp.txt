@@ -1,0 +1,350 @@
+------------------------------------mvn project---------------------------------------------------
+
+
+
+ mvn archetype:generate -DgroupId=com.kg."" -DartifactId="" -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
+ mvn archetype:generate -DgroupId=com.kg -DartifactId="" -DarchetypeArtifactId=maven-archetype-webapp -DinteractiveMode=false
+
+
+
+
+--------------------------------------------properties---------------------------------------------------------  
+
+  	<properties>
+        	<failOnMissingWebXml>false</failOnMissingWebXml>
+    	   	 <java-version>1.7</java-version>
+     	 	<org.springframework-version>4.0.3.RELEASE</org.springframework-version>
+  	</properties>
+
+
+ -------------------------------------------------dependency------------------------------------------------------
+
+
+        <!-- Spring mvc-->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>${org.springframework-version}</version>
+        </dependency>
+
+	<!-- Spring orm -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-orm</artifactId>
+            <version>${org.springframework-version}</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+
+
+        <!-- Hibernate -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>4.3.5.Final</version>
+        </dependency>
+
+
+        <!-- Servlet api -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.1.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+       
+	<!-- Servlet jsp-api -->
+ 	<dependency>
+            <groupId>javax.servlet.jsp</groupId>
+            <artifactId>javax.servlet.jsp-api</artifactId>
+            <version>2.3.1</version>
+            <scope>provided</scope>
+        </dependency>
+
+
+	<!-- jstl(JSP Standard Tag Library)-->
+  	 <dependency>
+            <groupId>jstl</groupId>
+            <artifactId>jstl</artifactId>
+            <version>1.2</version>
+        </dependency>
+
+
+        <!-- Apache Database Connection Pool -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-dbcp2</artifactId>
+            <version>2.0</version>
+        </dependency>
+
+
+        <!-- MySQL JDBC Driver -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.30</version>
+        </dependency>
+
+
+	<!--h2 database -->
+	<dependency>
+    		<groupId>com.h2database</groupId>
+    		<artifactId>h2</artifactId>
+    		<version>1.4.196</version>
+    		<scope>test</scope>
+	</dependency>
+
+
+	<!--spring-data-jpa -->
+	<dependency>
+   	 	<groupId>org.springframework.data</groupId>
+    		<artifactId>spring-data-jpa</artifactId>
+    		<version>2.0.4.RELEASE</version>
+	</dependency>
+
+
+ 
+
+---------------------------------------------------plugins-------------------------------------------------------
+
+           
+
+	 <plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat7-maven-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <port>9090</port>
+                    <path>/</path>
+                </configuration>
+            </plugin>
+
+
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <!-- put your configurations here -->
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+       
+ 
+--------------------------------------dispatcher class(spring)---------------------------------------------
+
+	//1)dispatcher class
+	
+	public class SpringWebAppInitializer implements WebApplicationInitializer {
+
+		public void onStartup(ServletContext servletContext) throws ServletException {
+        		AnnotationConfigWebApplicationContext appContext = new AnnotationConfigWebApplicationContext();
+        		appContext.register(ApplicationContextConfig.class);
+        		ServletRegistration.Dynamic dispatcher = servletContext.addServlet("SpringDispatcher", new DispatcherServlet(appContext));
+        		dispatcher.setLoadOnStartup(1);
+        		dispatcher.addMapping("/");
+        	}
+	}
+
+}
+
+--------------------------------------context class(spring)--------------------------------------------
+
+***********************************************resolver************************************************
+
+	//2)
+
+	@Bean(name = "viewResolver")
+	    public InternalResourceViewResolver getViewResolver() {
+        	InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
+	//path in which the jsp is availabe
+	        viewResolver.setPrefix("/WEB-INF/views/");	
+        	viewResolver.setSuffix(".jsp");
+	        return viewResolver;
+	    }
+    
+
+*******************************mysql database connection(datasource)*******************************************
+	 @Bean(name = "dataSource")
+    		public DataSource getDataSource() {
+      			BasicDataSource dataSource = new BasicDataSource();
+      			dataSource.setDriverClassName("com.mysql.jdbc.Driver");
+   			dataSource.setUrl("jdbc:mysql://localhost:3306/usersdb");
+        		dataSource.setUsername("root");
+        		dataSource.setPassword("");
+        	return dataSource;
+    		}   
+
+
+
+
+************************************to identify dialect*******************************************
+
+  
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$----E:\Mea\Hibernate-Architecture.gif---$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+    	private Properties getHibernateProperties() {
+        	Properties properties = new Properties();
+        	properties.put("hibernate.show_sql", "true");
+        	properties.put("hibernate.dialect","org.hibernate.dialect.MySQLDialect");
+	//create, create-drop, update, validate
+        	properties.put("hibernate.hbm2ddl.auto","create-drop");  
+        	return properties;
+   	 }
+
+
+    
+*************************************to include annotations(session factory)**********************************************
+
+	/*in case of the private constructor, object cannot be created.so we use session factory method and
+	 call another method to create an dummy object
+	*/
+
+    	// @Autowired
+   	// @Bean(name = "sessionFactory")
+    	// public SessionFactory getSessionFactory(DataSource dataSource) {
+    		//  LocalSessionFactoryBuilder sessionBuilder = new LocalSessionFactoryBuilder(dataSource);
+    		//  sessionBuilder.addProperties(getHibernateProperties());
+   	 // for adding annotation to one class(1st type)
+    		//  // sessionBuilder.addAnnotatedClasses(User.class);
+        // for adding annotation to another class
+    		//  // sessionBuilder.addAnnotatedClasses(Student.class);
+    	// for adding annotation to one package(2nd type)
+    		//  sessionBuilder.scanPackages("net.codejava.spring.model");
+    		//  return sessionBuilder.buildSessionFactory();
+   	 // }
+    
+
+
+    	//bean executes everytime whenever sessionfactory is used....
+    	@Bean(name = "sessionFactory")
+	public LocalSessionFactoryBean sessionFactory() {
+		LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
+   	   	sessionFactory.setDataSource(getDataSource());
+	//   for adding annotation for multiple package(3rd type)
+   	// new String[] { "pkg1","pkg2" });
+      		sessionFactory.setPackagesToScan(new String[] { "net.codejava.spring.model" });
+      		sessionFactory.setHibernateProperties(getHibernateProperties());
+		return sessionFactory;
+	   }
+
+
+
+*****************************************for transaction between jsp and java****************************
+
+	@Autowired
+	@Bean(name = "transactionManager")
+	public HibernateTransactionManager getTransactionManager(
+			SessionFactory sessionFactory) {
+				HibernateTransactionManager transactionManager = new HibernateTransactionManager(
+				sessionFactory);
+		return transactionManager;
+	}
+
+----------------------------------------------------------------------------------------------------------
+
+******************************************@Bean*********************************************************************
+
+There are several ways to configure beans in a Spring container. You can declare them using XML configuration.
+You can declare beans using the @Bean annotation in a configuration class.
+
+
+Spring can automatically scan a package for beans if component scanning is enabled.
+
+1)Here’s the simple way to do that with Java configuration:
+
+	@Configuration
+	@ComponentScan("com.baeldung")
+	public class JavaConfig {
+	    ...
+	}
+
+
+2)When using XML configuration, the component scanning can be used just as easily:
+
+<context:component-scan base-package="com.baeldung" />
+
+
+3)@Component is the most generic annotation, 
+simply ensuring that the class will be found during classpath scanning and
+ that it will be registered in the context as a bean:
+
+	@Component
+	public class Foo {
+	    ...
+	}
+
+
+Reference: http://www.baeldung.com/spring-bean-annotations
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------
+
+
+
+********************************application properties**********************************************
+
+
+spring.datasource.url =jdbc:h2:file:~/eventapp
+spring.datasource.username = sa
+spring.datasource.password = sa
+spring.datasource.driverClassName = org.h2.Driver
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+server.port=9092
+
+
+----------------------------------------------------------------------------------------
+
+
+
+
+*********************************************URLMapping*********************************************
+
+
+
+````````````````````````````````````````mappimg without id```````````````````````````````````````````````
+
+
+	@RequestMapping(method = RequestMethod.GET)
+	public List<Event> getAllEvents() {
+
+		return eventService.getAll();
+	}
+
+
+   	 @GetMapping("/get")
+  	 public @ResponseBody ResponseEntity<List<Event>> all() {
+  	      return new ResponseEntity<>(eventService.getAll(), HttpStatus.OK);
+   	 }
+
+
+`````````````````````````````````````````mappimg id````````````````````````````````
+	@RequestMapping(method = RequestMethod.POST)
+	public Event Save(@RequestBody Event item) {
+		return eventService.save(item);
+
+	}
+
+	@PostMapping("/post")
+    	public ResponseEntity<?> post(@RequestBody Event event, UriComponentsBuilder ucBuilder) {
+        	eventService.save(event);
+        	HttpHeaders headers = new HttpHeaders();
+        	headers.setLocation(ucBuilder.path("/get/{id}").buildAndExpand(event.getId()).toUri());
+        	return new ResponseEntity<>(headers, HttpStatus.OK);
+    	}
+
+
+
+------------------------------------------------------------------------------------------
